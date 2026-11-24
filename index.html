@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Открытка для Альбины</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --night:#0e1a3a; --night2:#16275a; --turq:#27b3a8; --gold:#e0b25a; --ivory:#f7f0df; --rose:#d4607a; --ink:#1d2540;
+  --serif: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans: -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--night);color:var(--ivory);font-family:var(--sans)}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(39,179,168,.22), transparent 45%),
+    radial-gradient(circle at 90% 100%, rgba(212,96,122,.18), transparent 45%),
+    linear-gradient(160deg,var(--night),var(--night2));
+  background-attachment:fixed;
+  padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 24px);
+}
+#app{max-width:460px;margin:0 auto;padding-top:22px}
+h1,h2{font-family:var(--serif);font-weight:600;margin:0 0 12px;line-height:1.2}
+h2{font-size:23px}
+p{line-height:1.55;margin:0 0 12px}
+.fade{animation:in .35s ease both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.center{text-align:center}
+.muted{opacity:.7;font-size:14px}
+
+/* кнопки */
+button{font:inherit;color:inherit;cursor:pointer;border:0}
+.btn{display:block;width:100%;padding:15px 18px;border-radius:14px;background:linear-gradient(135deg,var(--turq),#1d8f9a);color:#06222a;font-weight:700;font-size:16px;margin-top:14px;transition:transform .1s,opacity .2s}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.35;pointer-events:none}
+.btn.ghost{background:transparent;border:1px solid rgba(247,240,223,.3);color:var(--ivory);font-weight:500}
+.back{background:none;color:var(--ivory);opacity:.65;font-size:14px;padding:6px 0;margin-bottom:6px}
+
+/* конверт */
+.stage{display:flex;flex-direction:column;align-items:center;padding-top:8vh}
+.env{position:relative;width:290px;height:196px;perspective:900px;cursor:pointer}
+.env .back-p{position:absolute;inset:0;background:#c9a24d;border-radius:8px}
+.env .letter{position:absolute;left:14px;right:14px;top:14px;height:170px;background:var(--ivory);border-radius:6px;transition:transform .9s .45s cubic-bezier(.3,.7,.2,1);box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;color:var(--ink);font-family:var(--serif);font-size:20px}
+.env .front{position:absolute;inset:0;border-radius:8px;background:
+  linear-gradient(to top right,transparent 49.5%,#dcb862 50%) left/50% 100% no-repeat,
+  linear-gradient(to top left,transparent 49.5%,#d5ae58 50%) right/50% 100% no-repeat;
+  clip-path:polygon(0 0,50% 58%,100% 0,100% 100%,0 100%);background-color:#e2bd68}
+.env .flap{position:absolute;left:0;right:0;top:0;height:112px;background:#ecc973;transform-origin:top;clip-path:polygon(0 0,100% 0,50% 100%);transition:transform .7s ease,background .3s;z-index:3;backface-visibility:visible}
+.env .seal{position:absolute;left:50%;top:92px;transform:translateX(-50%);z-index:4;width:44px;height:44px;border-radius:50%;background:var(--rose);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 3px 8px rgba(0,0,0,.35);transition:opacity .3s}
+.env.open .flap{transform:rotateX(180deg);z-index:1;background:#caa24c}
+.env.open .seal{opacity:0}
+.env.open .letter{transform:translateY(-70px)}
+.env:not(.open){animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.hint{margin-top:34px;opacity:.75;font-size:15px}
+
+/* открытка */
+.card{background:var(--ivory);color:var(--ink);border-radius:18px;padding:26px 22px;border:2px solid var(--gold);outline:6px solid rgba(224,178,90,.18);outline-offset:-2px;position:relative}
+.card h1{font-size:28px;color:#18306b}
+.card p{font-size:16.5px;font-family:var(--serif);line-height:1.6}
+.card .sign{text-align:right;margin-top:16px;font-style:italic}
+.tile{height:10px;margin:0 0 18px;border-radius:5px;background:repeating-linear-gradient(90deg,var(--turq) 0 14px,#1b4f9c 14px 28px,var(--gold) 28px 42px)}
+
+/* вопросы */
+.progress{display:flex;gap:4px;margin:6px 0 20px}
+.progress i{flex:1;height:4px;border-radius:2px;background:rgba(247,240,223,.18)}
+.progress i.on{background:var(--turq)}
+.qcount{font-size:13px;opacity:.6;margin-bottom:6px}
+.q{font-family:var(--serif);font-size:23px;line-height:1.3;margin-bottom:6px}
+.sub{font-size:14px;opacity:.65;margin-bottom:14px}
+.opt{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:14px 16px;margin-top:9px;border-radius:14px;background:rgba(247,240,223,.07);border:1.5px solid rgba(247,240,223,.14);font-size:16px;transition:background .15s,border-color .15s}
+.opt .mk{width:20px;height:20px;border-radius:50%;border:2px solid rgba(247,240,223,.4);flex:none}
+.opt.multi .mk{border-radius:6px}
+.opt.sel{background:rgba(39,179,168,.2);border-color:var(--turq)}
+.opt.sel .mk{background:var(--turq);border-color:var(--turq)}
+textarea,input[type=text],input[type=time]{width:100%;margin-top:10px;padding:13px 14px;border-radius:14px;border:1.5px solid rgba(247,240,223,.2);background:rgba(247,240,223,.07);color:var(--ivory);font:inherit;font-size:16px}
+textarea{min-height:96px;resize:vertical}
+textarea:focus,input:focus{outline:2px solid var(--turq);outline-offset:1px}
+input[type=time]{color-scheme:dark}
+
+/* предупреждение */
+.warn{background:rgba(224,178,90,.12);border:1.5px solid var(--gold);border-radius:16px;padding:20px}
+.warn ul{padding-left:18px;margin:10px 0}
+.warn li{margin-bottom:8px;line-height:1.5}
+
+/* календарь */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin:8px 0}
+.cal-head button{background:rgba(247,240,223,.08);border-radius:10px;width:38px;height:38px;font-size:18px}
+.cal-head b{font-family:var(--serif);font-size:19px;text-transform:capitalize}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.grid .dn{text-align:center;font-size:12px;opacity:.55;padding:4px 0}
+.day{aspect-ratio:1;border-radius:11px;background:rgba(247,240,223,.07);font-size:15px}
+.day[disabled]{opacity:.2;pointer-events:none}
+.day.sel{background:var(--turq);color:#06222a;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{padding:10px 14px;border-radius:999px;background:rgba(247,240,223,.08);border:1.5px solid rgba(247,240,223,.15);font-size:15px}
+.chip.sel{background:var(--turq);color:#06222a;border-color:var(--turq);font-weight:700}
+.label{margin-top:18px;font-weight:600}
+.summary{margin-top:16px;padding:12px 14px;border-radius:12px;background:rgba(39,179,168,.15);font-size:15px}
+.big{font-size:54px;margin:16px 0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ================= НАСТРОЙКИ (меняй тут) ================= */
+// Места Самарканда. Проверь актуальность на Google Maps и поправь под себя.
+const PARKS = [
+  'Регистан и площадь вокруг',
+  'Гур-Эмир (мавзолей Тимура)',
+  'Шахи-Зинда',
+  'Мечеть Биби-Ханум',
+  'Базар Сиаб',
+  'Пешеходная улица возле Регистана',
+  'Обсерватория Улугбека',
+  'Городской бульвар и парк',
+  'Конигиль (бумажная фабрика)',
+  'Афросиаб (холм и музей)',
+  'Вечный город (Eternal City)'
+];
+const CAFES = [
+  'Platan Restaurant',
+  'Karimbek',
+  'Чайхана Биби-Ханум',
+  'Samarkand Restaurant',
+  'Уютная кофейня в центре',
+  'Чайхана в старом городе',
+  'Кондитерская / десерты'
+];
+
+/* ================= ВОПРОСЫ ================= */
+const QUIZ1 = [
+  {q:'Какое у тебя сейчас настроение?', type:'choice', o:['Отличное ✨','Спокойное','Немного усталое','Хочется приключений']},
+  {q:'Ты больше жаворонок или сова?', type:'choice', o:['Жаворонок','Сова','По настроению']},
+  {q:'Любимое время года?', type:'choice', o:['Весна','Лето','Осень','Зима']},
+  {q:'Чай, кофе или что-то другое?', type:'choice', o:['Чай','Кофе','Какао','Лимонад / фреш','Просто вода']},
+  {q:'Какая музыка тебя заряжает?', sub:'Можно выбрать несколько', type:'multi', o:['Поп','Рэп / хип-хоп','Восточная / узбекская','Спокойная, lofi','Рок','Что угодно, лишь бы хорошая']},
+  {q:'Идеальный отдых для тебя?', type:'choice', o:['Горы','Море','Старинный город','Лес и природа','Дома с книгой или сериалом']},
+  {q:'Чем ты любишь заниматься в свободное время?', sub:'Можно выбрать несколько', type:'multi', o:['Смотреть кино и сериалы','Читать','Творчество и рисование','Гулять','Спорт','Фотографировать','Готовить','Болтать с друзьями']},
+  {q:'Сладкое или солёное?', type:'choice', o:['Сладкое','Солёное','И то и другое']},
+  {q:'Какие знаки внимания тебе приятнее всего?', type:'choice', o:['Цветы','Сладости','Что-то сделанное своими руками','Книга','Просто добрые слова','Совместное время']},
+  {q:'Опиши себя тремя словами', sub:'Как сама видишь себя', type:'text', ph:'Например: добрая, упрямая, смешная'}
+];
+
+const QUIZ2 = [
+  {q:'Давид хочет позвать тебя на прогулку по Самарканду. Как тебе такая идея?', type:'choice', o:['Звучит здорово 😊','Интересно, давай подробнее','Мне нужно подумать','Пока не уверена']},
+  {q:'В какое время суток тебе комфортнее?', type:'choice', o:['Утром','Днём','Ближе к закату','Вечером']},
+  {q:'Сколько по времени тебе было бы комфортно гулять?', type:'choice', o:['Около часа','2–3 часа','Полдня','Как пойдёт']},
+  {q:'Какой формат тебе ближе?', type:'choice', o:['Спокойная прогулка и разговоры','Больше фото и красивых мест','Достопримечательности с историей','Кафе, чай и десерты','Всего понемногу']},
+  {q:'Куда бы ты пошла гулять?', sub:'Выбери любые места или впиши своё', type:'multi', o:PARKS, other:'Своё место (по желанию)'},
+  {q:'А где бы выпила чаю или поела?', sub:'Кафе и рестораны Самарканда', type:'multi', o:CAFES, other:'Другое место (по желанию)'},
+  {q:'Что бы ты хотела попробовать?', type:'multi', o:['Чай со сладостями','Плов','Самса и шашлык','Десерты','Кофе и выпечка','Мороженое','Что-то лёгкое, не голодная']},
+  {q:'Как тебе удобнее добираться?', type:'choice', o:['Встретимся на месте','Давид заедет / зайдёт за мной','Каждый сам, потом встретимся','Как скажешь']},
+  {q:'Что важно, чтобы тебе было спокойно и комфортно?', type:'multi', o:['Людное, светлое место','Без спешки','Чтобы было не шумно','Заранее договориться о времени','Чтобы я могла в любой момент уйти домой','Чтобы мы вернулись не поздно']},
+  {q:'Есть что-то, что Давиду стоит учесть?', sub:'Аллергии, ограничения, что не хочешь. Необязательно', type:'text', ph:'Можно оставить пустым', optional:true}
+];
+
+/* ================= ЛОГИКА ================= */
+const tg = window.Telegram && Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); try{tg.setHeaderColor('#0e1a3a');tg.setBackgroundColor('#0e1a3a');}catch(e){} }
+const initData = tg ? tg.initData : '';
+const app = document.getElementById('app');
+
+const S = { step:'loading', i:0, a1:[], a2:[], o2:{}, remaining:0, month:null, date:null, time:null, comment:'' };
+
+async function api(p, body){
+  try{
+    const r = await fetch(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,...body})});
+    const j = await r.json().catch(()=>({}));
+    return {status:r.status,...j};
+  }catch(e){ return {status:0,error:'network'}; }
+}
+const buzz = (t='light') => { try{ tg.HapticFeedback.impactOccurred(t);}catch(e){} };
+const E = (s)=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function view(html){ app.innerHTML = `<div class="fade">${html}</div>`; window.scrollTo(0,0); }
+
+/* --- старт --- */
+async function boot(){
+  view('<p class="center muted" style="padding-top:30vh">Загружаю…</p>');
+  const r = await api('/api/status',{});
+  if (r.status===401) return view(msg('Открой через Telegram','Эта открытка работает только внутри бота в Telegram.'));
+  if (r.status===403) return view(msg('Открытка личная','Она создана для одного человека.'));
+  if (r.status!==200) return view(msg('Не получилось загрузиться','Проверь интернет и открой открытку ещё раз.'));
+  S.remaining = r.remaining;
+  if (S.remaining<=0) return view(msg('Попытки закончились','Ты уже использовала обе попытки. Давид получил твои ответы 💫'));
+  envelope();
+}
+const msg=(t,p)=>`<div class="center" style="padding-top:22vh"><h2>${t}</h2><p class="muted">${p}</p></div>`;
+
+/* --- конверт --- */
+function envelope(){
+  S.step='envelope';
+  view(`<div class="stage">
+    <div class="env" id="env"><div class="back-p"></div><div class="letter">Для Альбины</div><div class="front"></div><div class="flap"></div><div class="seal">💌</div></div>
+    <p class="hint">Нажми на конверт</p></div>`);
+  const env = document.getElementById('env');
+  env.onclick = ()=>{ buzz('medium'); env.classList.add('open'); setTimeout(greeting,1700); };
+}
+
+/* --- открытка с приветствием --- */
+function greeting(){
+  view(`<div class="card" style="margin-top:6vh">
+    <div class="tile"></div>
+    <h1>Привет, Альбина!</h1>
+    <p>Это Давид. Я долго думал, как сделать это по-человечески, и решил: пусть будет маленькая открытка.</p>
+    <p>Сначала я задам несколько лёгких вопросов, чтобы лучше узнать тебя. Потом будет вопрос про одну прогулку по Самарканду. Никакого давления: отвечай так, как чувствуешь, любой ответ нормальный.</p>
+    <p class="sign">С теплом, Давид</p>
+  </div>
+  <button class="btn" id="go">Начать</button>`);
+  document.getElementById('go').onclick=()=>{ S.i=0; S.step='q1'; showQ(1); };
+}
+
+/* --- вопросы --- */
+function showQ(part){
+  const list = part===1?QUIZ1:QUIZ2, q = list[S.i];
+  const store = part===1?S.a1:S.a2;
+  const cur = store[S.i];
+  const bars = list.map((_,k)=>`<i class="${k<=S.i?'on':''}"></i>`).join('');
+  let body='';
+  if (q.type==='text'){
+    body = `<textarea id="txt" placeholder="${E(q.ph||'')}" maxlength="400">${E(cur||'')}</textarea>`;
+  } else {
+    body = q.o.map((t,k)=>{
+      const sel = q.type==='multi' ? (cur||[]).includes(t) : cur===t;
+      return `<button class="opt ${q.type==='multi'?'multi':''} ${sel?'sel':''}" data-k="${k}"><span class="mk"></span>${E(t)}</button>`;
+    }).join('');
+    if (q.other) body += `<input type="text" id="oth" maxlength="120" placeholder="${E(q.other)}" value="${E(S.o2[S.i]||'')}">`;
+  }
+  const needBtn = q.type!=='choice';
+  view(`<button class="back" id="bk">← Назад</button>
+    <div class="progress">${bars}</div>
+    <div class="qcount">Вопрос ${S.i+1} из ${list.length}</div>
+    <div class="q">${E(q.q)}</div>
+    ${q.sub?`<div class="sub">${E(q.sub)}</div>`:'<div style="height:8px"></div>'}
+    ${body}
+    ${needBtn?`<button class="btn" id="nx">Дальше</button>`:''}`);
+
+  document.getElementById('bk').onclick=()=>{
+    if (S.i>0){S.i--;showQ(part);}
+    else if (part===1) greeting();
+    else disclaimer();
+  };
+  const next=()=>{
+    buzz();
+    if (S.i<list.length-1){S.i++;showQ(part);}
+    else if (part===1) disclaimer();
+    else calendar();
+  };
+  if (q.type==='choice'){
+    app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ store[S.i]=q.o[+b.dataset.k]; b.classList.add('sel'); setTimeout(next,220); });
+  } else if (q.type==='multi'){
+    app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const t=q.o[+b.dataset.k]; const a=store[S.i]||(store[S.i]=[]);
+      const ix=a.indexOf(t); ix>=0?a.splice(ix,1):a.push(t); b.classList.toggle('sel'); buzz();
+    });
+    const oth=document.getElementById('oth'); if(oth) oth.oninput=()=>S.o2[S.i]=oth.value;
+    document.getElementById('nx').onclick=next;
+  } else {
+    const t=document.getElementById('txt');
+    t.oninput=()=>{store[S.i]=t.value; setBtn();};
+    const setBtn=()=>{ document.getElementById('nx').disabled = !q.optional && !t.value.trim(); }; setBtn();
+    document.getElementById('nx').onclick=next;
+  }
+}
+
+/* --- предупреждение --- */
+function disclaimer(){
+  S.step='disc';
+  view(`<div class="warn">
+    <h2>Небольшое предупреждение</h2>
+    <p>Дальше вопросы станут чуть серьёзнее: они про возможную прогулку по Самарканду вместе с Давидом.</p>
+    <ul>
+      <li>Ты ничем не обязана. На любой вопрос можно ответить «пока не знаю» или остановиться.</li>
+      <li>Ответы придут только Давиду, он никому их не покажет. Если ты решишь остановиться, он тоже узнает об этом.</li>
+      <li>Отвечай честно, так выйдет лучше для вас обоих.</li>
+      <li>Пройти открытку до конца можно только 2 раза.</li>
+    </ul>
+  </div>
+  <button class="btn" id="ok">Поняла, продолжаем</button>
+  <button class="btn ghost" id="no">Я пока не хочу продолжать</button>`);
+  document.getElementById('ok').onclick=()=>{S.i=0;S.step='q2';showQ(2);};
+  document.getElementById('no').onclick=async()=>{
+    await api('/api/decline',{});
+    view(msg('Всё в порядке 🌿','Спасибо, что дошла до этого места. Никаких обязательств, правда.'));
+  };
+}
+
+/* --- календарь --- */
+const TIMES=['10:00','12:00','14:00','16:00','17:30','19:00','20:00'];
+const MONTHS_FULL=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+function calendar(){
+  S.step='cal';
+  if(!S.month){const n=new Date();S.month=new Date(n.getFullYear(),n.getMonth(),1);}
+  const today=new Date();today.setHours(0,0,0,0);
+  const max=new Date(today);max.setDate(max.getDate()+60);
+  const m=S.month, y=m.getFullYear(), mo=m.getMonth();
+  const first=(new Date(y,mo,1).getDay()+6)%7, dim=new Date(y,mo+1,0).getDate();
+  let cells=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>`<div class="dn">${d}</div>`).join('');
+  for(let k=0;k<first;k++)cells+='<div></div>';
+  for(let d=1;d<=dim;d++){
+    const dt=new Date(y,mo,d), key=`${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const off=dt<today||dt>max;
+    cells+=`<button class="day ${S.date===key?'sel':''}" data-d="${key}" ${off?'disabled':''}>${d}</button>`;
+  }
+  const custom = S.time && !TIMES.includes(S.time);
+  view(`<button class="back" id="bk">← Назад</button>
+    <h2>Выбери день и время</h2>
+    <p class="muted">Когда тебе было бы удобно погулять?</p>
+    <div class="cal-head"><button id="pv">‹</button><b>${MONTHS_FULL[mo]} ${y}</b><button id="nx2">›</button></div>
+    <div class="grid">${cells}</div>
+    <div class="label">Время</div>
+    <div class="chips">${TIMES.map(t=>`<button class="chip ${S.time===t?'sel':''}" data-t="${t}">${t}</button>`).join('')}</div>
+    <input type="time" id="ct" value="${custom?S.time:''}" aria-label="Своё время">
+    <div class="label">Комментарий</div>
+    <textarea id="cm" maxlength="500" placeholder="Что хочешь добавить? Пожелания, идеи, вопросы к Давиду">${E(S.comment)}</textarea>
+    <div class="summary" id="sm" style="display:none"></div>
+    <button class="btn" id="send">Отправить Давиду</button>`);
+
+  const upd=()=>{
+    const sm=document.getElementById('sm');
+    if(S.date&&S.time){sm.style.display='block';sm.textContent='Выбрано: '+dateLabel()+', '+S.time;}else sm.style.display='none';
+    document.getElementById('send').disabled=!(S.date&&S.time);
+  };
+  upd();
+  document.getElementById('bk').onclick=()=>{S.i=QUIZ2.length-1;showQ(2);};
+  document.getElementById('pv').onclick=()=>{S.comment=document.getElementById('cm').value;S.month=new Date(y,mo-1,1);calendar();};
+  document.getElementById('nx2').onclick=()=>{S.comment=document.getElementById('cm').value;S.month=new Date(y,mo+1,1);calendar();};
+  app.querySelectorAll('.day').forEach(b=>b.onclick=()=>{S.date=b.dataset.d;app.querySelectorAll('.day').forEach(x=>x.classList.toggle('sel',x===b));buzz();upd();});
+  app.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{S.time=b.dataset.t;document.getElementById('ct').value='';app.querySelectorAll('.chip').forEach(x=>x.classList.toggle('sel',x===b));buzz();upd();});
+  document.getElementById('ct').onchange=e=>{S.time=e.target.value||null;app.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));upd();};
+  document.getElementById('cm').oninput=e=>S.comment=e.target.value;
+  document.getElementById('send').onclick=submit;
+}
+function dateLabel(){
+  const [y,m,d]=S.date.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+}
+
+/* --- отправка --- */
+function fmt(q,a,i,store){
+  let v=store[i];
+  if(Array.isArray(v)) v=v.slice();
+  else v=v?[v]:[];
+  if(store===S.a2 && S.o2[i] && S.o2[i].trim()) v.push('(своё) '+S.o2[i].trim());
+  return v.join(', ');
+}
+async function submit(){
+  const btn=document.getElementById('send'); btn.disabled=true; btn.textContent='Отправляю…';
+  const answers=[];
+  QUIZ1.forEach((q,i)=>answers.push({part:1,q:q.q,a:fmt(q,0,i,S.a1)}));
+  QUIZ2.forEach((q,i)=>answers.push({part:2,q:q.q,a:fmt(q,0,i,S.a2)}));
+  S.comment=document.getElementById('cm').value;
+  const r=await api('/api/submit',{answers,date:S.date,dateLabel:dateLabel(),time:S.time,comment:S.comment});
+  if(r.status===200){ S.remaining=r.remaining; buzz('heavy'); done(); }
+  else if(r.status===403) view(msg('Попытки закончились','Обе попытки уже использованы.'));
+  else { btn.disabled=false; btn.textContent='Отправить Давиду'; alert('Не отправилось. Проверь интернет и нажми ещё раз.'); }
+}
+function done(){
+  S.step='done';
+  const again = S.remaining>0 && S.remaining<99;
+  view(`<div class="center" style="padding-top:12vh">
+    <div class="big">💫</div>
+    <h2>Готово, Альбина</h2>
+    <p>Давид получил твои ответы прямо в Telegram. Спасибо, что была честной.</p>
+    ${again?`<p class="muted">Если передумала что-то, можно пройти ещё раз. Осталось попыток: ${S.remaining}.</p><button class="btn ghost" id="re">Пройти заново</button>`:''}
+  </div>`);
+  if(again) document.getElementById('re').onclick=()=>{S.a1=[];S.a2=[];S.o2={};S.date=null;S.time=null;S.comment='';S.month=null;S.i=0;envelope();};
+}
+
+boot();
+</script>
+</body>
+</html>
